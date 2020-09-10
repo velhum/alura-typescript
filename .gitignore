@@ -1,0 +1,19 @@
+# Ignore all directories, and all sub-directories, and it's contents:
+# Ignore * all files in directories
+# Ignore **/ alll subdirectories 
+
+.vscode/
+/.settings/
+/.project
+/.buildpath
+
+# System Files
+.DS_Store
+Thumbs.db
+*.zip
+
+# Node
+package-lock.json
+/node_modules
+app/js
+
