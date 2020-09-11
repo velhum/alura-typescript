@@ -1,7 +1,7 @@
 // Como esta clase não pode ser instanciada, pois depende da implementação
 // do método template, ela deve ser do tipo 'abstract'
 
-abstract class View<T> {
+export abstract class View<T> {
 
     private _elemento: Element;
 
