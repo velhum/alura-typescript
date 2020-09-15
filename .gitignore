@@ -15,5 +15,6 @@ Thumbs.db
 # Node
 package-lock.json
 /node_modules
+/api/node_modules
 app/js
 

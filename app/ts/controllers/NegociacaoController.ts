@@ -1,6 +1,8 @@
 import { NegociacoesView, MensagemView  } from '../views/index';
 import { Negociacoes, Negociacao } from '../models/index';
-import { domInject } from '../helpers/decorators/index';
+import { domInject, throttle } from '../helpers/decorators/index';
+import { NegociacaoService } from '../services/index';
+import { imprime } from '../helpers/index'
 export class NegociacaoController {
 
     @domInject('#data')
@@ -12,6 +14,7 @@ export class NegociacaoController {
     private _negociacoes = new Negociacoes;
     private _negociacoesView = new NegociacoesView('#negociacoesView');
     private _mensagemView = new MensagemView('#mensagemView');
+    private _service = new NegociacaoService;
 
     constructor() {
         // atualiza a view para exibir os dados do modelo, vazio
@@ -39,9 +42,73 @@ export class NegociacaoController {
 
         // depois de adicionar, atualiza a view novamente para refletir os dados
         this._negociacoesView.update(this._negociacoes);
-        this._mensagemView.update('Negociação incluída com sucesso.')
+        this._mensagemView.update('Negociação incluída com sucesso.');
+        imprime(negociacao, this._negociacoes);
     };
 
+    // Opção async / await
+    @throttle()
+    async importaDados() {
+
+        try {
+            const negociacoesParaImportar = await this._service
+            .obterNegociacoes(res => {
+
+                if(res.ok) {
+                    return res;
+                } else {
+                    throw new Error(res.statusText);
+                }
+            });
+
+            const negociacoesJaImportadas = this._negociacoes.paraArray();
+
+            negociacoesParaImportar
+                .filter(negociacao => 
+                    !negociacoesJaImportadas.some(jaImportada => 
+                        negociacao.ehIgual(jaImportada)))
+                .forEach(negociacao => 
+                this._negociacoes.adiciona(negociacao));
+
+            this._negociacoesView.update(this._negociacoes);
+
+        } catch(err) {
+            this._mensagemView.update(err.message);
+        }
+    }
+
+    // Opção com .then
+    /*
+    @throttle()
+    importaDados() {
+
+        this._service
+            .obterNegociacoes(res => {
+
+                if(res.ok) {
+                    return res;
+                } else {
+                    throw new Error(res.statusText);
+                }
+            })
+            .then(negociacoesParaImportar => {
+
+                const negociacoesJaImportadas = this._negociacoes.paraArray();
+
+                negociacoesParaImportar
+                    .filter(negociacao => 
+                        !negociacoesJaImportadas.some(jaImportada => 
+                            negociacao.ehIgual(jaImportada)))
+                    .forEach(negociacao => 
+                    this._negociacoes.adiciona(negociacao));
+
+                this._negociacoesView.update(this._negociacoes);
+            })
+            .catch((err: Error) => {
+                this._mensagemView.update(err.message);
+            });
+    }
+    */
     private ehDiaUtil (data: Date) : boolean {
         return data.getDay() != DiaDaSemana.Domingo && data.getDay() != DiaDaSemana.Sabado
     }
